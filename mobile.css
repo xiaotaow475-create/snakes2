@@ -1,0 +1,47 @@
+/* 移动端一屏适配（<=500px） */
+html, body { height: 100%; }
+body { overflow: hidden; }
+
+.game-container { padding: 8px; margin: 0; max-height: 100vh; }
+
+.game-header { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; align-items: center; }
+.game-header h1 { grid-column: 1 / -1; font-size: 1.8em; margin-bottom: 6px; }
+.score-board, .timer { font-size: 1em; margin: 6px 0; }
+.mode { margin-top: 4px; }
+.hint { margin-top: 4px; font-size: 0.85em; }
+
+.game-grid { grid-template-columns: repeat(20, 14px); grid-template-rows: repeat(20, 14px); }
+.cell { width: 14px; height: 14px; }
+
+.game-controls { margin: 10px 0; }
+.btn { padding: 8px 14px; font-size: 1em; }
+
+.mobile-controls { display: block; }
+.dpad { grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); }
+.ctrl-btn { width: 48px; height: 48px; font-size: 1.1em; }
+
+.overlay, .game-over, .celebration { padding: 16px; }
+.game-over h2, .celebration h2 { font-size: 1.6em; }
+.instructions { font-size: 0.85em; }
+
+/* 更窄屏幕进一步压缩 */
+@media (max-width: 380px) {
+  .game-grid { grid-template-columns: repeat(20, 12px); grid-template-rows: repeat(20, 12px); }
+  .cell { width: 12px; height: 12px; }
+  .game-header h1 { font-size: 1.6em; }
+  .score-board, .timer { font-size: 0.95em; }
+  .btn { padding: 7px 12px; font-size: 0.95em; }
+  .dpad { grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); }
+  .ctrl-btn { width: 44px; height: 44px; font-size: 1.05em; }
+}
+
+@media (max-width: 340px) {
+  .game-grid { grid-template-columns: repeat(20, 10px); grid-template-rows: repeat(20, 10px); }
+  .cell { width: 10px; height: 10px; }
+  .game-header h1 { font-size: 1.4em; }
+  .score-board, .timer { font-size: 0.9em; }
+  .btn { padding: 6px 10px; font-size: 0.9em; }
+  .hint { font-size: 0.8em; }
+  .dpad { grid-template-columns: repeat(3, 40px); grid-template-rows: repeat(3, 40px); }
+  .ctrl-btn { width: 40px; height: 40px; font-size: 1em; }
+}

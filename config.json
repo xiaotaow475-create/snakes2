@@ -1,0 +1,46 @@
+{
+  "gridSize": 20,
+  "initialSnakeLength": 3,
+  "gameSpeed": 230,
+  "speedStep": 15,
+  "minSpeed": 100,
+  "maxSpeed": 300,
+  "slowDownStep": 30,
+  "defaultLevel": 1,
+  "levels": {
+    "1": {
+      "name": "纯净模式",
+      "description": "回归经典，专注基础操作",
+      "gameSpeed": 300,
+      "obstacles": { "count": 0 },
+      "portals": [],
+      "foodWeights": { "normal": 1.0, "big": 0, "slow": 0 }
+    },
+    "2": {
+      "name": "进阶挑战",
+      "description": "引入新机制，策略规划",
+      "gameSpeed": 200,
+      "obstacles": { "count": 8 },
+      "portals": [
+        { "a": { "row": 3, "col": 9 }, "b": { "row": 16, "col": 10 } }
+      ],
+      "foodWeights": { "normal": 0.5, "big": 0.3, "slow": 0.2 }
+    },
+    "3": {
+      "name": "地狱模式",
+      "description": "极限挑战，高手对决",
+      "gameSpeed": 150,
+      "obstacles": { "count": 15 },
+      "portals": [
+        { "a": { "row": 2, "col": 5 }, "b": { "row": 17, "col": 14 } },
+        { "a": { "row": 5, "col": 17 }, "b": { "row": 14, "col": 2 } }
+      ],
+      "foodWeights": { "normal": 0.35, "big": 0.25, "slow": 0.4 }
+    }
+  },
+  "obstacles": { "count": 10 },
+  "portals": [
+    { "a": { "row": 2, "col": 2 }, "b": { "row": 17, "col": 17 } }
+  ],
+  "foodWeights": { "normal": 0.7, "big": 0.2, "slow": 0.1 }
+}
