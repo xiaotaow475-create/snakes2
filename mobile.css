@@ -1,14 +1,47 @@
 /* 移动端一屏适配（<=500px） */
-html, body { height: 100%; }
-body { overflow: hidden; }
+html, body { height: 100%; margin: 0; padding: 0; }
+body { overflow-x: hidden; overflow-y: auto; }
 
-.game-container { padding: 8px; margin: 0; max-height: 100vh; }
+.game-container { 
+    padding: 8px; 
+    margin: 0; 
+    max-height: 100vh; 
+    overflow-y: auto;
+    box-sizing: border-box;
+}
 
 .game-header { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; align-items: center; }
-.game-header h1 { grid-column: 1 / -1; font-size: 1.8em; margin-bottom: 6px; }
-.score-board, .timer { font-size: 1em; margin: 6px 0; }
+.game-header h1 { grid-column: 1 / -1; font-size: 1.5em; margin: 8px 0; }
+.score-board, .timer { font-size: 0.9em; margin: 4px 0; }
 .mode { margin-top: 4px; }
-.hint { margin-top: 4px; font-size: 0.85em; }
+.hint { margin-top: 4px; font-size: 0.8em; }
+
+/* 关卡选择器移动端优化 */
+.level-selector {
+    padding: 8px;
+    margin: 8px 0;
+    border-radius: 6px;
+}
+
+.level-info h3 {
+    font-size: 1.1em;
+    margin-bottom: 3px;
+}
+
+.level-info p {
+    font-size: 0.8em;
+    margin-bottom: 8px;
+}
+
+.level-buttons {
+    gap: 6px;
+}
+
+.level-btn {
+    padding: 6px 12px;
+    font-size: 0.8em;
+    border-radius: 4px;
+}
 
 .game-grid { grid-template-columns: repeat(20, 14px); grid-template-rows: repeat(20, 14px); }
 .cell { width: 14px; height: 14px; }
@@ -24,9 +57,59 @@ body { overflow: hidden; }
 .game-over h2, .celebration h2 { font-size: 1.6em; }
 .instructions { font-size: 0.85em; }
 
+/* iPhone 16 专门优化 (393px viewport width) */
+@media (max-width: 393px) {
+    .game-container { 
+        padding: 6px; 
+        max-height: 100vh; 
+        overflow-y: auto;
+    }
+    
+    .game-header h1 { font-size: 1.4em; margin: 6px 0; }
+    .score-board, .timer { font-size: 0.85em; margin: 3px 0; }
+    
+    .level-selector {
+        padding: 7px;
+        margin: 7px 0;
+    }
+    
+    .level-info h3 {
+        font-size: 1.05em;
+        margin-bottom: 2px;
+    }
+    
+    .level-info p {
+        font-size: 0.78em;
+        margin-bottom: 6px;
+    }
+    
+    .level-btn {
+        padding: 5px 11px;
+        font-size: 0.78em;
+    }
+    
+    .game-grid { 
+        grid-template-columns: repeat(20, 13px); 
+        grid-template-rows: repeat(20, 13px); 
+        margin: 6px auto;
+    }
+    .cell { width: 13px; height: 13px; }
+    
+    .btn { padding: 5px 10px; font-size: 0.85em; margin: 2px; }
+    
+    .dpad { 
+        grid-template-columns: repeat(3, 42px); 
+        grid-template-rows: repeat(3, 42px); 
+        gap: 2px;
+    }
+    .ctrl-btn { width: 42px; height: 42px; font-size: 1.05em; }
+    
+    .hint { font-size: 0.78em; margin: 3px 0; }
+}
+
 /* 更窄屏幕进一步压缩 */
 @media (max-width: 380px) {
-  .game-grid { grid-template-columns: repeat(20, 12px); grid-template-rows: repeat(20, 12px); }
+  .game-grid { grid-template-columns: repeat(20, 12px); grid-template-rows: repeat(20, 12px); margin: 5px auto; }
   .cell { width: 12px; height: 12px; }
   .game-header h1 { font-size: 1.6em; }
   .score-board, .timer { font-size: 0.95em; }
@@ -36,7 +119,7 @@ body { overflow: hidden; }
 }
 
 @media (max-width: 340px) {
-  .game-grid { grid-template-columns: repeat(20, 10px); grid-template-rows: repeat(20, 10px); }
+  .game-grid { grid-template-columns: repeat(20, 10px); grid-template-rows: repeat(20, 10px); margin: 4px auto; }
   .cell { width: 10px; height: 10px; }
   .game-header h1 { font-size: 1.4em; }
   .score-board, .timer { font-size: 0.9em; }

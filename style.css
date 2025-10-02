@@ -407,22 +407,226 @@ body {
 }
 
 @media (max-width: 500px) {
+    body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+    
     .game-container {
-        padding: 15px;
-        margin: 10px;
+        padding: 8px;
+        margin: 0;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+    
+    .game-header h1 {
+        font-size: 1.5em;
+        margin: 8px 0;
+    }
+    
+    .score-board, .timer {
+        font-size: 0.9em;
+        margin: 4px 0;
+    }
+    
+    /* 关卡选择器移动端优化 */
+    .level-selector {
+        padding: 8px;
+        margin: 8px 0;
+        border-radius: 6px;
+    }
+    
+    .level-info h3 {
+        font-size: 1.1em;
+        margin-bottom: 3px;
+    }
+    
+    .level-info p {
+        font-size: 0.8em;
+        margin-bottom: 8px;
+    }
+    
+    .level-buttons {
+        gap: 6px;
+    }
+    
+    .level-btn {
+        padding: 6px 12px;
+        font-size: 0.8em;
+        border-radius: 4px;
     }
     
     .game-grid {
-        grid-template-columns: repeat(20, 15px);
-        grid-template-rows: repeat(20, 15px);
+        grid-template-columns: repeat(20, 14px);
+        grid-template-rows: repeat(20, 14px);
+        margin: 8px auto;
     }
     
     .cell {
-        width: 15px;
-        height: 15px;
+        width: 14px;
+        height: 14px;
+    }
+    
+    .game-controls {
+        margin: 8px 0;
+    }
+    
+    .btn {
+        padding: 6px 12px;
+        font-size: 0.9em;
+        margin: 2px;
     }
 
-    .mobile-controls { display: block; }
-    .dpad { grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(3, 50px); }
-    .ctrl-btn { width: 50px; height: 50px; font-size: 1.2em; }
+    .mobile-controls { 
+        display: block;
+        margin: 8px 0;
+    }
+    
+    .dpad { 
+        grid-template-columns: repeat(3, 45px); 
+        grid-template-rows: repeat(3, 45px);
+        gap: 2px;
+    }
+    
+    .ctrl-btn { 
+        width: 45px; 
+        height: 45px; 
+        font-size: 1.1em;
+    }
+    
+    .mode select {
+        font-size: 0.9em;
+        padding: 4px;
+    }
+    
+    .hint {
+        font-size: 0.8em;
+        margin: 4px 0;
+    }
+}
+
+/* iPhone 16 专门优化 (393px viewport width) */
+@media (max-width: 393px) {
+    .game-container {
+        padding: 6px;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+    
+    .game-header h1 {
+        font-size: 1.4em;
+        margin: 6px 0;
+    }
+    
+    .score-board, .timer {
+        font-size: 0.85em;
+        margin: 3px 0;
+    }
+    
+    .level-selector {
+        padding: 7px;
+        margin: 7px 0;
+    }
+    
+    .level-info h3 {
+        font-size: 1.05em;
+        margin-bottom: 2px;
+    }
+    
+    .level-info p {
+        font-size: 0.78em;
+        margin-bottom: 6px;
+    }
+    
+    .level-btn {
+        padding: 5px 11px;
+        font-size: 0.78em;
+    }
+    
+    .game-grid {
+        grid-template-columns: repeat(20, 13px);
+        grid-template-rows: repeat(20, 13px);
+        margin: 6px auto;
+    }
+    
+    .cell {
+        width: 13px;
+        height: 13px;
+    }
+    
+    .btn {
+        padding: 5px 10px;
+        font-size: 0.85em;
+        margin: 2px;
+    }
+    
+    .dpad { 
+        grid-template-columns: repeat(3, 42px); 
+        grid-template-rows: repeat(3, 42px);
+        gap: 2px;
+    }
+    
+    .ctrl-btn { 
+        width: 42px; 
+        height: 42px; 
+        font-size: 1.05em;
+    }
+    
+    .hint {
+        font-size: 0.78em;
+        margin: 3px 0;
+    }
+}
+
+/* 更小屏幕进一步优化 */
+@media (max-width: 380px) {
+    .game-container {
+        padding: 5px;
+    }
+    
+    .game-header h1 {
+        font-size: 1.3em;
+        margin: 5px 0;
+    }
+    
+    .level-selector {
+        padding: 6px;
+        margin: 6px 0;
+    }
+    
+    .level-info h3 {
+        font-size: 1em;
+    }
+    
+    .level-info p {
+        font-size: 0.75em;
+    }
+    
+    .level-btn {
+        padding: 5px 10px;
+        font-size: 0.75em;
+    }
+    
+    .game-grid {
+        grid-template-columns: repeat(20, 12px);
+        grid-template-rows: repeat(20, 12px);
+        margin: 5px auto;
+    }
+    
+    .cell {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .dpad { 
+        grid-template-columns: repeat(3, 40px); 
+        grid-template-rows: repeat(3, 40px);
+    }
+    
+    .ctrl-btn { 
+        width: 40px; 
+        height: 40px; 
+        font-size: 1em;
+    }
 }

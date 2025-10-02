@@ -473,13 +473,13 @@ class SnakeGame {
         const head = this.snake[0];
         if (this.food && head.row === this.food.row && head.col === this.food.col) {
             const foodType = this.food.type || 'normal';
-            let scoreGain = 1;
+            let scoreGain = 10;
             
             // 根据食物类型处理效果
             if (foodType === 'big') {
-                scoreGain = 2;
+                scoreGain = 20;
             } else if (foodType === 'slow') {
-                scoreGain = 1;
+                scoreGain = 10;
                 // 减速效果：增加游戏间隔时间
                 this.gameSpeed = Math.min(this.gameSpeed + this.slowDownStep, this.maxSpeed);
                 this.updateSpeed();
@@ -490,13 +490,13 @@ class SnakeGame {
             this.foodEaten = true;
             this.generateFood();
             
-            // 每+5分提速，设置最低速度上限（减速食物不影响此逻辑）
-            if (this.score % 5 === 0 && foodType !== 'slow') {
+            // 每+50分提速，设置最低速度上限（减速食物不影响此逻辑）
+            if (this.score % 50 === 0 && foodType !== 'slow') {
                 this.gameSpeed = Math.max(this.gameSpeed - this.speedStep, this.minSpeed);
                 this.updateSpeed();
             }
-            // 每+10分切换颜色主题
-            if (this.score % 10 === 0) {
+            // 每+100分切换颜色主题
+            if (this.score % 100 === 0) {
                 this.updateColors();
             }
         }
