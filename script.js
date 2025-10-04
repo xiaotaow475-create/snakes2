@@ -477,6 +477,7 @@ class SnakeGame {
             
             this.score += scoreGain;
             this.updateScore();
+            this.checkLevelUp(); // 检查是否达到关卡晋级条件
             this.foodEaten = true;
             this.generateFood();
             
