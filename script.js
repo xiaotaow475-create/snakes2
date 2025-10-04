@@ -546,9 +546,11 @@ class SnakeGame {
             // 达到晋级分数，自动切换到下一关
             if (this.levels[nextLevel] && !this.levelCompleted) {
                 this.levelCompleted = true; // 标记当前关卡完成
+                this.pauseGame(); // 关卡完成时暂停游戏
                 setTimeout(() => {
                     this.showLevelUpNotification(nextLevel);
                     setTimeout(() => {
+                        this.resumeGame(); // 恢复游戏以便切换关卡
                         this.switchToNextLevel(nextLevel);
                         // 在关卡晋级时触发庆祝
                         this.celebrate();
