@@ -5,16 +5,19 @@ class SnakeGame {
         this.gameSpeed = 150; // 默认值，配置加载后会覆盖
         this.initialSnakeLength = 3;
         this.gameInterval = null;
-        this.timerInterval = null;
-        this.timeLeft = 60;
         this.isPaused = false;
-        this.boundaryMode = 'die';
+        
+        // 关卡晋级分数设置
+        this.levelUpScores = {
+            2: 300,  // 关卡1 → 关卡2：300分
+            3: 800   // 关卡2 → 关卡3：800分
+        };
+        this.highScore = 0; // 将在关卡设置后加载
         this.minSpeed = 70;
         this.speedStep = 15;
         this.initialGameSpeed = this.gameSpeed;
         // 新增元素与规则（由 config.json 覆盖）
         this.obstacles = [];
-        this.portals = [];
         this.foodWeights = { normal: 0.7, big: 0.2, slow: 0.1 };
         this.slowDownStep = 30;
         this.maxSpeed = 300;
@@ -38,7 +41,7 @@ class SnakeGame {
         
         this.gameGrid = document.getElementById('gameGrid');
         this.scoreDisplay = document.getElementById('score');
-        this.timeDisplay = document.getElementById('time');
+        this.highScoreDisplay = document.getElementById('highScore');
         this.startBtn = document.getElementById('startBtn');
         this.restartBtn = document.getElementById('restartBtn');
         this.gameOverScreen = document.getElementById('gameOver');
@@ -46,7 +49,6 @@ class SnakeGame {
         this.celebrationScreen = document.getElementById('celebration');
         this.restartGameBtn = document.getElementById('restartGameBtn');
         this.restartAfterCelebration = document.getElementById('restartAfterCelebration');
-        this.boundaryModeSelect = document.getElementById('boundaryMode');
         this.pauseOverlay = document.getElementById('pauseOverlay');
         this.resumeBtn = document.getElementById('resumeBtn');
         this.restartFromPauseBtn = document.getElementById('restartFromPauseBtn');
@@ -90,7 +92,7 @@ class SnakeGame {
             if (typeof cfg.slowDownStep === 'number') this.slowDownStep = cfg.slowDownStep;
             if (cfg.foodWeights) this.foodWeights = cfg.foodWeights;
             if (cfg.obstacles && typeof cfg.obstacles.count === 'number') this.obstacleCount = cfg.obstacles.count;
-            if (Array.isArray(cfg.portals)) this.portals = cfg.portals;
+
             
             // 加载关卡配置
             if (cfg.levels) this.levels = cfg.levels;
@@ -135,12 +137,11 @@ class SnakeGame {
         this.startBtn.addEventListener('click', () => this.startGame());
         this.restartBtn.addEventListener('click', () => this.resetGame());
         this.restartGameBtn.addEventListener('click', () => this.resetGame());
-        this.restartAfterCelebration.addEventListener('click', () => this.resetGame());
-        if (this.boundaryModeSelect) {
-            this.boundaryModeSelect.addEventListener('change', (e) => {
-                this.boundaryMode = e.target.value;
-            });
-        }
+        this.restartAfterCelebration.addEventListener('click', () => {
+            this.celebrationScreen.classList.add('hidden');
+            this.resumeGame();
+        });
+        // 移除边界模式选择器事件监听
         if (this.resumeBtn) this.resumeBtn.addEventListener('click', () => this.resumeGame());
         if (this.restartFromPauseBtn) this.restartFromPauseBtn.addEventListener('click', () => this.resetGame());
         if (this.helpBtn && this.helpText) {
@@ -184,7 +185,6 @@ class SnakeGame {
         this.isGameOver = false;
         this.startBtn.disabled = true;
         this.restartBtn.disabled = false;
-        this.startTimer();
         this.setGameInterval();
         this.updateColors();
         this.updatePauseButton();
@@ -192,21 +192,24 @@ class SnakeGame {
     
     resetGame() {
         clearInterval(this.gameInterval);
-        clearInterval(this.timerInterval);
         this.isPaused = false;
         this.direction = 'right';
         this.nextDirection = 'right';
         this.score = 0;
-        this.timeLeft = 60;
         this.isGameOver = false;
         this.isPlaying = false;
         this.foodEaten = false; // 初始化食物吃掉状态
+        this.levelCompleted = false; // 重置关卡完成状态
         
         // 应用当前关卡配置
         this.applyLevelConfig();
         
+        // 加载当前关卡的最高分
+        this.highScore = this.loadHighScore();
+        
         this.updateScore();
-        this.updateTimer();
+        this.checkLevelUp();
+        this.updateHighScore();
         this.setupLevelElements();
         this.initializeSnake();
         this.generateFood();
@@ -216,7 +219,7 @@ class SnakeGame {
         this.gameOverScreen.classList.add('hidden');
         this.celebrationScreen.classList.add('hidden');
         if (this.pauseOverlay) this.pauseOverlay.classList.add('hidden');
-        if (this.boundaryModeSelect) this.boundaryMode = this.boundaryModeSelect.value;
+        // 移除边界模式设置，默认使用撞墙死亡模式
         this.updateColors();
         this.updatePauseButton();
     }
@@ -228,7 +231,6 @@ class SnakeGame {
             // 应用关卡特定的配置
             this.gameSpeed = levelConfig.gameSpeed || this.initialGameSpeed;
             this.obstacleCount = levelConfig.obstacles?.count || 0;
-            this.portals = levelConfig.portals || [];
             this.foodWeights = levelConfig.foodWeights || { normal: 1.0, big: 0, slow: 0 };
         } else {
             // 使用默认配置
@@ -258,6 +260,52 @@ class SnakeGame {
         }
     }
     
+    // 显示关卡晋级通知
+    showLevelUpNotification(nextLevel) {
+        const notification = document.createElement('div');
+        notification.className = 'level-up-notification';
+        notification.innerHTML = `
+            <div class="level-up-content">
+                <h2>🎉 关卡完成！</h2>
+                <p>恭喜你完成了关卡 ${this.currentLevel}！</p>
+                <p>即将进入关卡 ${nextLevel}...</p>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // 添加动画效果
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
+        // 3秒后移除通知
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 500);
+        }, 3000);
+    }
+    
+    // 自动切换到下一关
+    switchToNextLevel(nextLevel) {
+        this.currentLevel = nextLevel;
+        this.levelCompleted = false;
+        
+        // 解锁下一关
+        if (!this.unlockedLevels.includes(nextLevel)) {
+            this.unlockedLevels.push(nextLevel);
+        }
+        
+        // 重置游戏状态
+        this.resetGame();
+        this.updateLevelDisplay();
+        this.updateLevelButtons();
+    }
+    
     isLevelUnlocked(levelNumber) {
         return this.unlockedLevels.includes(levelNumber);
     }
@@ -285,32 +333,15 @@ class SnakeGame {
     
     // 更新关卡显示
     updateLevelDisplay() {
-        const levelConfig = this.levels[this.currentLevel];
-        if (levelConfig) {
-            const levelNameElement = document.getElementById('currentLevelName');
-            const levelDescElement = document.getElementById('currentLevelDesc');
-            if (levelNameElement) levelNameElement.textContent = levelConfig.name;
-            if (levelDescElement) levelDescElement.textContent = levelConfig.description;
+        const currentLevelElement = document.getElementById('currentLevel');
+        if (currentLevelElement) {
+            currentLevelElement.textContent = this.currentLevel;
         }
     }
     
     updateLevelButtons() {
-        const levelButtons = document.querySelectorAll('.level-btn');
-        levelButtons.forEach((button, index) => {
-            const levelNumber = index + 1;
-            const isUnlocked = this.isLevelUnlocked(levelNumber);
-            const isCurrent = levelNumber === this.currentLevel;
-            
-            button.disabled = !isUnlocked;
-            button.classList.toggle('locked', !isUnlocked);
-            button.classList.toggle('current', isCurrent);
-            
-            if (!isUnlocked) {
-                button.innerHTML = `🔒 关卡${levelNumber}`;
-            } else {
-                button.innerHTML = `关卡${levelNumber}`;
-            }
-        });
+        // 关卡按钮已移除，此方法保留为空以避免调用错误
+        // 关卡切换现在通过自动晋级系统处理
     }
     
     setupLevelElements() {
@@ -319,7 +350,6 @@ class SnakeGame {
         this.obstacles = this.generateObstacles(count);
         
         // 传送门已经在applyLevelConfig中设置，不需要默认值
-        // this.portals 已经在 applyLevelConfig 中正确设置
     }
 
     generateObstacles(count) {
@@ -366,7 +396,7 @@ class SnakeGame {
                 row: Math.floor(Math.random() * this.gridSize),
                 col: Math.floor(Math.random() * this.gridSize)
             };
-        } while (this.isPositionOccupied(foodPosition) || this.isObstacle(foodPosition) || this.isPortal(foodPosition));
+        } while (this.isPositionOccupied(foodPosition) || this.isObstacle(foodPosition));
         this.food = { ...foodPosition, type: this.pickFoodType() };
     }
     
@@ -378,13 +408,7 @@ class SnakeGame {
         return this.obstacles.some(o => o.row === position.row && o.col === position.col);
     }
 
-    isPortal(position) {
-        if (!Array.isArray(this.portals)) return false;
-        return this.portals.some(p =>
-            (p.a.row === position.row && p.a.col === position.col) ||
-            (p.b.row === position.row && p.b.col === position.col)
-        );
-    }
+
 
     pickFoodType() {
         const w = this.foodWeights || { normal: 0.7, big: 0.2, slow: 0.1 };
@@ -414,55 +438,21 @@ class SnakeGame {
             case 'left': head.col--; break;
             case 'right': head.col++; break;
         }
-        // 边界模式：wrap 时穿墙到另一侧
-        if (this.boundaryMode === 'wrap') {
-            if (head.row < 0) head.row = this.gridSize - 1;
-            else if (head.row >= this.gridSize) head.row = 0;
-            if (head.col < 0) head.col = this.gridSize - 1;
-            else if (head.col >= this.gridSize) head.col = 0;
-        }
-        const tp = this.teleportIfPortal(head);
-        const newHead = tp || head;
-        this.snake.unshift(newHead);
-        // 立即自撞检测：wrap 模式下穿墙后如果头部落在身体上，立即判定碰撞
-        if (this.boundaryMode === 'wrap' || this._teleported) {
-            for (let i = 1; i < this.snake.length; i++) {
-                if (newHead.row === this.snake[i].row && newHead.col === this.snake[i].col) {
-                    this._collidedOnMove = true;
-                    return; // 保留状态，gameLoop 会处理结束逻辑
-                }
-            }
-            if (this.isObstacle(newHead)) {
-                this._collidedOnMove = true;
-                return;
-            }
-        }
+        // 移除边界模式逻辑，只使用撞墙死亡模式
+        this.snake.unshift(head);
         if (!this.foodEaten) this.snake.pop();
         this.foodEaten = false;
     }
 
-    teleportIfPortal(pos) {
-        this._teleported = false;
-        if (!Array.isArray(this.portals)) return null;
-        for (const p of this.portals) {
-            if (pos.row === p.a.row && pos.col === p.a.col) {
-                this._teleported = true;
-                return { row: p.b.row, col: p.b.col };
-            }
-            if (pos.row === p.b.row && pos.col === p.b.col) {
-                this._teleported = true;
-                return { row: p.a.row, col: p.a.col };
-            }
-        }
-        return null;
-    }
+
     
     checkCollision() {
         const head = this.snake[0];
-        if (this.boundaryMode === 'die') {
-            if (head.row < 0 || head.row >= this.gridSize || head.col < 0 || head.col >= this.gridSize) return true;
-        }
+        // 撞墙检测
+        if (head.row < 0 || head.row >= this.gridSize || head.col < 0 || head.col >= this.gridSize) return true;
+        // 障碍物检测
         if (this.isObstacle(head)) return true;
+        // 自撞检测
         for (let i = 1; i < this.snake.length; i++) {
             if (head.row === this.snake[i].row && head.col === this.snake[i].col) return true;
         }
@@ -504,7 +494,7 @@ class SnakeGame {
     
     renderGame() {
         const cells = this.gameGrid.querySelectorAll('.cell');
-        cells.forEach(cell => cell.classList.remove('snake', 'snake-head', 'food', 'food-big', 'food-slow', 'obstacle', 'portal-a', 'portal-b'));
+        cells.forEach(cell => cell.classList.remove('snake', 'snake-head', 'food', 'food-big', 'food-slow', 'obstacle'));
         
         this.snake.forEach((segment, index) => {
             const cell = this.getCell(segment.row, segment.col);
@@ -529,22 +519,17 @@ class SnakeGame {
             if (cell) cell.classList.add('obstacle');
         });
 
-        // 渲染传送门
-        if (Array.isArray(this.portals)) {
-            this.portals.forEach(p => {
-                const ca = this.getCell(p.a.row, p.a.col);
-                const cb = this.getCell(p.b.row, p.b.col);
-                if (ca) ca.classList.add('portal-a');
-                if (cb) cb.classList.add('portal-b');
-            });
-        }
+
     }
     
     getCell(row, col) {
         return this.gameGrid.querySelector(`[data-row="${row}"][data-col="${col}"]`);
     }
     
-    updateScore() { this.scoreDisplay.textContent = this.score; }
+    updateScore() { 
+        this.scoreDisplay.textContent = this.score; 
+        this.updateHighScore();
+    }
 
     // 根据分数设置颜色主题（每+10分切换一次）
     updateColors() {
@@ -553,29 +538,57 @@ class SnakeGame {
         this.gameGrid.style.setProperty('--snake-head', this.colors.head[idx]);
     }
     
-    startTimer() {
-        this.updateTimer();
-        this.timerInterval = setInterval(() => {
-            this.timeLeft--;
-            this.updateTimer();
-            if (this.timeLeft <= 0) this.celebrate();
-        }, 1000);
+    // 检查关卡晋级
+    checkLevelUp() {
+        const nextLevel = this.currentLevel + 1;
+        if (this.levelUpScores[nextLevel] && this.score >= this.levelUpScores[nextLevel]) {
+            // 达到晋级分数，自动切换到下一关
+            if (this.levels[nextLevel] && !this.levelCompleted) {
+                this.levelCompleted = true; // 标记当前关卡完成
+                setTimeout(() => {
+                    this.showLevelUpNotification(nextLevel);
+                    setTimeout(() => {
+                        this.switchToNextLevel(nextLevel);
+                        // 在关卡晋级时触发庆祝
+                        this.celebrate();
+                    }, 2000); // 2秒后自动切换关卡
+                }, 500);
+            }
+        }
     }
     
-    updateTimer() { this.timeDisplay.textContent = this.timeLeft; }
+    loadHighScore(level = null) {
+        const currentLevel = level || this.currentLevel;
+        return parseInt(localStorage.getItem(`snakeHighScore_level_${currentLevel}`) || '0');
+    }
+    
+    saveHighScore() {
+        localStorage.setItem(`snakeHighScore_level_${this.currentLevel}`, this.highScore.toString());
+    }
+    
+    updateHighScore() {
+        if (this.score > this.highScore) {
+            this.highScore = this.score;
+            this.saveHighScore();
+        }
+        if (this.highScoreDisplay) {
+            this.highScoreDisplay.textContent = this.highScore;
+        }
+    }
     
     endGame() {
         this.isGameOver = true;
         this.isPlaying = false;
         clearInterval(this.gameInterval);
-        clearInterval(this.timerInterval);
+        this.updateHighScore();
         this.finalScoreDisplay.textContent = this.score;
         this.gameOverScreen.classList.remove('hidden');
         if (this.pauseOverlay) this.pauseOverlay.classList.add('hidden');
     }
     
     celebrate() {
-        this.isPlaying = false;
+        // 暂停游戏
+        this.isPaused = true;
         clearInterval(this.gameInterval);
         clearInterval(this.timerInterval);
         
